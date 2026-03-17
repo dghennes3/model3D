@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瓷语·境 - 陶瓷艺术体验平台</title>
+    <!-- 外部依赖 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        /* 全局样式重置与基础配置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif;
+        }
+
+        :root {
+            --primary: #8B5A2B; /* 陶土色 */
+            --secondary: #C8D8E4; /* 青花蓝 */
+            --dark: #2A3B4C; /* 深灰蓝 */
+            --light: #F8F5F0; /* 米白 */
+            --accent: #E67E22; /* 陶釉橙 */
+            --shadow: 0 4px 20px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: var(--light);
+            color: var(--dark);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: var(--primary);
+            color: white;
+            transition: var(--transition);
+        }
+
+        button:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255,255,255,0.95);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* 英雄区样式 */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://i.postimg.cc/brJ10LM6/d058d8e8c9f8925ae8a61cb5e0bf3e49.jpg') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding-top: 80px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            padding: 2rem;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .btn-primary {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 4px;
+            background: var(--accent);
+            font-weight: 600;
+        }
+
+        /* 时空叙事板块 */
+        .timeline-section {
+            padding: 5rem 0;
+            background: white;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: var(--accent);
+            margin: 1rem auto;
+            border-radius: 2px;
+        }
+
+        .timeline-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: var(--secondary);
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 50%;
+            position: relative;
+            margin-bottom: 4rem;
+        }
+
+        .timeline-item:nth-child(even) {
+            justify-content: flex-start;
+            padding-right: 0;
+            padding-left: 50%;
+        }
+
+        .timeline-content {
+            width: 45%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            position: relative;
+        }
+
+        .timeline-content::after {
+            content: '';
+            position: absolute;
+            top: 2rem;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            background: white;
+            transform: rotate(45deg);
+            box-shadow: 5px -5px 10px rgba(0,0,0,0.05);
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::after {
+            right: auto;
+            left: -15px;
+            box-shadow: -5px 5px 10px rgba(0,0,0,0.05);
+        }
+
+        .timeline-dot {
+            position: absolute;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 4px solid white;
+            z-index: 10;
+        }
+
+        .timeline-period {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .timeline-desc {
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .craft-detail {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .craft-detail h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .model-preview {
+            width: 100%;
+            height: 200px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .model-btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            background: var(--primary);
+            font-weight: 500;
+        }
+
+        /* 3D模型库 */
+        .model-library {
+            padding: 5rem 0;
+            background: var(--light);
+        }
+
+        .model-filter {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            background: white;
+            color: var(--dark);
+            border: 1px solid #ddd;
+            transition: var(--transition);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .model-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .model-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .model-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .model-card-content {
+            padding: 1.5rem;
+        }
+
+        .model-name {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .model-period {
+            color: #777;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .model-material {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .model-desc {
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+            color: #555;
+        }
+
+        /* 虚拟陶艺创作 */
+        .pottery-creator {
+            padding: 5rem 0;
+            background: white;
+        }
+
+        .creator-container {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .creator-left {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .creator-right {
+            flex: 2;
+            min-width: 500px;
+            height: 600px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #creator-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .creator-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .control-group {
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .control-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .control-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .control-btn {
+            padding: 0.8rem 1.2rem;
+            border-radius: 4px;
+            background: white;
+            color: var(--dark);
+            border: 1px solid #ddd;
+            transition: var(--transition);
+        }
+
+        .control-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .slider-control {
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .slider-value {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .color-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition);
+        }
+
+        .color-btn.active {
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .create-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            background: var(--accent);
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        /* 模拟下单板块 */
+        .order-section {
+            padding: 5rem 0;
+            background: var(--light);
+        }
+
+        .order-container {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .order-form {
+            flex: 1;
+            min-width: 300px;
+            padding: 2rem;
+        }
+
+        .chat-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 2rem;
+            background: var(--secondary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .order-summary {
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .summary-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed #ddd;
+        }
+
+        .summary-price {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .order-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border-radius: 4px;
+            background: var(--accent);
+            font-weight: 600;
+        }
+
+        .chat-box {
+            height: 300px;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-message {
+            max-width: 80%;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+
+        .user-msg {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+        }
+
+        .support-msg {
+            align-self: flex-start;
+            background: #f0f0f0;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-text {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .send-btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            background: var(--primary);
+        }
+
+        /* 页脚 */
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+
+        .footer-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-col {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .footer-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent);
+            display: inline-block;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-link {
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            transform: translateX(5px);
+            color: var(--accent);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        /* 3D模型弹窗 */
+        .model-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            width: 100%;
+            height: 90%;
+            background: black;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        #model-viewer {
+            width: 100%;
+            height: 100%;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* 订单确认弹窗 */
+        .order-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .order-modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .modal-desc {
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .modal-btn {
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            background: var(--accent);
+            font-weight: 600;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .timeline::before {
+                left: 30px;
+            }
+
+            .timeline-item {
+                padding-right: 0;
+                padding-left: 70px;
+                justify-content: flex-start;
+            }
+
+            .timeline-item:nth-child(even) {
+                padding-left: 70px;
+            }
+
+            .timeline-content {
+                width: 100%;
+            }
+
+            .timeline-content::after {
+                right: auto;
+                left: -15px;
+                box-shadow: -5px 5px 10px rgba(0,0,0,0.05);
+            }
+
+            .timeline-dot {
+                left: 30px;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .creator-right {
+                min-width: 100%;
+                height: 400px;
+            }
+        }
+
+        /* 加载动画 */
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fa fa-paint-brush"></i>
+                瓷语·境
+            </div>
+            <div class="nav-menu">
+                <a href="#home" class="nav-link active">首页</a>
+                <a href="#timeline" class="nav-link">时空叙事</a>
+                <a href="#models" class="nav-link">3D模型库</a>
+                <a href="#creator" class="nav-link">虚拟创作</a>
+                <a href="#order" class="nav-link">定制下单</a>
+            </div>
+            <div class="mobile-menu-btn">
+                <i class="fa fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 英雄区 -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1 class="hero-title">数字传承 · 瓷艺新生</h1>
+            <p class="hero-desc">沉浸式陶瓷艺术体验平台，穿越时空感受千年瓷艺之美，亲手创作属于你的数字陶瓷作品，定制专属实物藏品。</p>
+            <button class="btn-primary" onclick="scrollToSection('timeline')">开始体验</button>
+        </div>
+    </section>
+
+    <!-- 时空叙事板块（含工艺解构） -->
+    <section class="timeline-section" id="timeline">
+        <div class="container">
+            <h2 class="section-title">陶瓷时空叙事与工艺解构</h2>
+            <div class="timeline-container">
+                <div class="timeline">
+                    <!-- 唐代 -->
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h3 class="timeline-period">唐代 · 初创</h3>
+                            <p class="timeline-desc">唐代陶瓷工艺迎来第一个高峰，以唐三彩为代表的低温釉陶闻名于世。此时的青花瓷尚处于初创阶段，胎质较粗，纹饰简单，为后世青花发展奠定了基础。</p>
+                            <div class="craft-detail">
+                                <h4>核心工艺</h4>
+                                <p>● 原料：选用北方坩土，含铁量较高，胎色偏红<br>● 成型：轮制拉坯为主，手工修坯<br>● 施釉：蘸釉法，釉层较厚<br>● 烧制：氧化焰烧制，温度约800-900℃</p>
+                            </div>
+                            <div class="model-preview" style="background: url('https://i.postimg.cc/cCpBB23K/tang-san-cai.jpg') center/cover no-repeat;"></div>
+                            <button class="model-btn" onclick="openModelViewer('tang')">查看3D模型</button>
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+
+                    <!-- 宋代 -->
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h3 class="timeline-period">宋代 · 鼎盛</h3>
+                            <p class="timeline-desc">宋代陶瓷工艺达到艺术巅峰，五大名窑各具特色。青花瓷在宋代继续发展，胎质逐渐细腻，釉色更加均匀，纹饰开始出现花卉、动物等图案，体现文人审美。</p>
+                            <div class="craft-detail">
+                                <h4>核心工艺</h4>
+                                <p>● 原料：景德镇瓷石为主，淘洗精细，胎质洁白<br>● 成型：旋坯技术成熟，器型规整<br>● 施釉：荡釉、喷釉结合，釉面光洁<br>● 烧制：还原焰烧制，温度约1200-1250℃</p>
+                            </div>
+                            <div class="model-preview" style="background: url('https://i.postimg.cc/RZrg761Y/song-dai-qing-hua-ci.jpg') center/cover no-repeat;"></div>
+                            <button class="model-btn" onclick="openModelViewer('song')">查看3D模型</button>
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+
+                    <!-- 元代 -->
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h3 class="timeline-period">元代 · 革新</h3>
+                            <p class="timeline-desc">元代是青花瓷的黄金时代，景德镇成为制瓷中心。元青花采用进口钴料，发色浓艳，纹饰繁密，题材丰富，具有浓郁的游牧民族特色。</p>
+                            <div class="craft-detail">
+                                <h4>核心工艺</h4>
+                                <p>● 原料：瓷石+高岭土二元配方，胎体更坚固<br>● 成型：分段拉坯，整体拼接<br>● 施釉：青花料彩绘后罩透明釉<br>● 烧制：二次烧制，先素烧后釉烧，温度1300℃</p>
+                            </div>
+                            <div class="model-preview" style="background: url('https://i.postimg.cc/Zqb2NvZH/yuan-dai-qing-hua-ci.jpg') center/cover no-repeat;"></div>
+                            <button class="model-btn" onclick="openModelViewer('yuan')">查看3D模型</button>
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+
+                    <!-- 明代 -->
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h3 class="timeline-period">明代 · 成熟</h3>
+                            <p class="timeline-desc">明代青花瓷发展至鼎盛，各朝风格迥异。永乐宣德时期青花发色浓艳，成化时期淡雅清丽，官窑青花制作规整，民窑青花则自由奔放。</p>
+                            <div class="craft-detail">
+                                <h4>核心工艺</h4>
+                                <p>● 原料：精选高岭土，胎质细腻洁白<br>● 成型：机械化旋坯，器型标准化<br>● 施釉：分水技法，青花层次丰富<br>● 烧制：官窑严格控温，成品率高</p>
+                            </div>
+                            <div class="model-preview" style="background: url('https://i.postimg.cc/kMKsnXPG/ming-dai.jpg') center/cover no-repeat;"></div>
+                            <button class="model-btn" onclick="openModelViewer('ming')">查看3D模型</button>
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+
+                    <!-- 清代 -->
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h3 class="timeline-period">清代 · 集大成</h3>
+                            <p class="timeline-desc">清代青花瓷在继承传统的基础上不断创新，康熙时期青花发色翠蓝，层次分明；雍正时期淡雅柔和；乾隆时期繁缛华丽，是中国陶瓷史上的最后辉煌。</p>
+                            <div class="craft-detail">
+                                <h4>核心工艺</h4>
+                                <p>● 原料：多次淘洗，胎质如糯米胎<br>● 成型：手工+模具结合，细节精致<br>● 施釉：洋蓝料应用，色彩丰富<br>● 烧制：温控精准，釉面莹润</p>
+                            </div>
+                            <div class="model-preview" style="background: url('https://i.postimg.cc/1Xh8CQvc/qing-dai-qing-hua-ci9.jpg') center/cover no-repeat;"></div>
+                            <button class="model-btn" onclick="openModelViewer('qing')">查看3D模型</button>
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3D模型库（高精度PBR材质） -->
+    <section class="model-library" id="models">
+        <div class="container">
+            <h2 class="section-title">高精度陶瓷3D模型库</h2>
+            <div class="model-filter">
+                <button class="filter-btn active" data-filter="all">全部</button>
+                <button class="filter-btn" data-filter="tang">唐代</button>
+                <button class="filter-btn" data-filter="song">宋代</button>
+                <button class="filter-btn" data-filter="yuan">元代</button>
+                <button class="filter-btn" data-filter="ming">明代</button>
+                <button class="filter-btn" data-filter="qing">清代</button>
+            </div>
+            <div class="model-grid">
+                <!-- 模型1 -->
+                <div class="model-card" data-period="yuan">
+                    <img src="https://i.postimg.cc/fyDBG6yZ/hua-mei-ping.jpg" alt="元青花梅瓶" class="model-img">
+                    <div class="model-card-content">
+                        <h3 class="model-name">元青花梅瓶</h3>
+                        <p class="model-period">元代 · 景德镇窑</p>
+                        <p class="model-material"><i class="fa fa-cube"></i> PBR材质：苏麻离青料纹理 + 高岭土胎质</p>
+                        <p class="model-desc">采用进口苏麻离青料，纹饰为萧何月下追韩信图，造型饱满，是元青花的代表作品。模型精度：面数12万，含法线/粗糙度/金属度贴图。</p>
+                        <button class="model-btn" onclick="openModelViewer('yuan')">3D查看</button>
+                    </div>
+                </div>
+
+                <!-- 模型2 -->
+                <div class="model-card" data-period="ming">
+                    <img src="https://i.postimg.cc/d3sjHrHb/ming-xuan-de-qing-hua-wan.jpg" alt="明宣德青花碗" class="model-img">
+                    <div class="model-card-content">
+                        <h3 class="model-name">明宣德青花碗</h3>
+                        <p class="model-period">明代 · 宣德年间</p>
+                        <p class="model-material"><i class="fa fa-cube"></i> PBR材质：宣德青花料 + 糯米胎质</p>
+                        <p class="model-desc">青花发色浓艳，有铁锈斑特征，碗心绘缠枝莲纹，口沿饰回纹，是宣德官窑精品。模型精度：面数8万，含釉面反光/凹凸贴图。</p>
+                        <button class="model-btn" onclick="openModelViewer('ming')">3D查看</button>
+                    </div>
+                </div>
+
+                <!-- 模型3 -->
+                <div class="model-card" data-period="qing">
+                    <img src="https://i.postimg.cc/02H0n6pV/qing-kang-xi-qing-hua-ping.jpg" alt="清康熙青花瓶" class="model-img">
+                    <div class="model-card-content">
+                        <h3 class="model-name">清康熙青花瓶</h3>
+                        <p class="model-period">清代 · 康熙年间</p>
+                        <p class="model-material"><i class="fa fa-cube"></i> PBR材质：康熙翠蓝料 + 莹润釉面</p>
+                        <p class="model-desc">青花发色翠蓝，层次分明，绘山水人物纹，构图疏朗，体现康熙朝青花的典型特征。模型精度：面数10万，含多层青花纹理。</p>
+                        <button class="model-btn" onclick="openModelViewer('qing')">3D查看</button>
+                    </div>
+                </div>
+
+                <!-- 模型4 -->
+                <div class="model-card" data-period="song">
+                    <img src="https://i.postimg.cc/xCRKzqfW/song-ru-yao-qing-ci-ping.jpg" alt="宋汝窑青瓷瓶" class="model-img">
+                    <div class="model-card-content">
+                        <h3 class="model-name">宋汝窑青瓷瓶</h3>
+                        <p class="model-period">宋代 · 汝窑</p>
+                        <p class="model-material"><i class="fa fa-cube"></i> PBR材质：天青釉 + 开片纹理</p>
+                        <p class="model-desc">天青色釉，开片自然，造型简约典雅，体现宋代文人审美的最高境界，存世稀少。模型精度：面数9万，含开片细节/釉面温润效果。</p>
+                        <button class="model-btn" onclick="openModelViewer('song')">3D查看</button>
+                    </div>
+                </div>
+
+                <!-- 模型5 -->
+                <div class="model-card" data-period="tang">
+                    <img src="https://i.postimg.cc/Kc0PcKs1/tang-tang-san-cai-ma.jpg" alt="唐唐三彩马" class="model-img">
+                    <div class="model-card-content">
+                        <h3 class="model-name">唐唐三彩马</h3>
+                        <p class="model-period">唐代 · 巩县窑</p>
+                        <p class="model-material"><i class="fa fa-cube"></i> PBR材质：三彩釉 + 陶土胎质</p>
+                        <p class="model-desc">黄、绿、白三色釉彩，造型雄健，体现大唐盛世的豪迈气象，是唐三彩的经典之作。模型精度：面数15万，含釉彩流淌纹理。</p>
+                        <button class="model-btn" onclick="openModelViewer('tang')">3D查看</button>
+                    </div>
+                </div>
+
+                <!-- 模型6 -->
+                <div class="model-card" data-period="qing">
+                    <img src="https://i.postimg.cc/vZVfv08T/qing-qian-long-fen-cai-ping.jpg" alt="清乾隆粉彩瓶" class="model-img">
+                    <div class="model-card-content">
+                        <h3 class="model-name">清乾隆粉彩瓶</h3>
+                        <p class="model-period">清代 · 乾隆年间</p>
+                        <p class="model-material"><i class="fa fa-cube"></i> PBR材质：粉彩釉 + 描金纹理</p>
+                        <p class="model-desc">粉彩纹饰繁缛华丽，色彩丰富，绘百鸟朝凤图，体现乾隆朝制瓷工艺的巅峰水平。模型精度：面数18万，含多层釉彩叠加效果。</p>
+                        <button class="model-btn" onclick="openModelViewer('qing')">3D查看</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+
+    <!-- 模拟下单板块 -->
+    <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青花陶瓷DIY创作工坊 - H5版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background: #f8f5f0;
+            color: #2A3B4C;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: #8B5A2B;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* 预览区域 */
+        .preview-section {
+            width: 90%;
+            margin: 20px auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .preview-title {
+            font-size: 1.2rem;
+            color: #8B5A2B;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        #preview-container {
+            width: 100%;
+            height: 350px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+        }
+
+        #preview-container:active {
+            cursor: grabbing;
+        }
+
+        .ceramic-preview {
+            width: 200px;
+            height: 280px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: all 0.3s ease;
+        }
+
+        /* 不同器型基础样式 */
+        .ceramic-body {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: var(--ceramic-color, #e8e0d0);
+            box-shadow: inset -25px -15px 0 rgba(0,0,0,0.12),
+                        inset 25px 15px 0 rgba(255,255,255,0.35);
+            transition: border-radius 0.05s linear, background 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        /* 花瓶默认样式 */
+        .ceramic-body.vase {
+            border-radius: 40% 40% 60% 60% / 20% 20% 80% 80%;
+        }
+
+        /* 青花碗样式 */
+        .ceramic-body.bowl {
+            border-radius: 50% 50% 20% 20% / 40% 40% 10% 10%;
+            height: 180px;
+            width: 220px;
+            margin-top: 50px;
+        }
+
+        /* 青花盘样式 */
+        .ceramic-body.plate {
+            border-radius: 50% 50% 50% 50% / 10% 10% 10% 10%;
+            height: 80px;
+            width: 240px;
+            margin-top: 100px;
+            box-shadow: inset -15px -10px 0 rgba(0,0,0,0.12),
+                        inset 15px 10px 0 rgba(255,255,255,0.35);
+        }
+
+        /* 青花杯样式 */
+        .ceramic-body.cup {
+            border-radius: 35% 35% 40% 40% / 25% 25% 60% 60%;
+            height: 180px;
+            width: 160px;
+            margin-top: 50px;
+        }
+
+        .ceramic-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: var(--ceramic-pattern, none);
+            background-size: cover;
+            opacity: 0.82;
+            border-radius: inherit;
+            transition: border-radius 0.05s linear;
+        }
+
+        /* 控制区域 */
+        .control-section {
+            width: 90%;
+            margin: 20px auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-title {
+            font-size: 1.1rem;
+            color: #8B5A2B;
+            margin-bottom: 10px;
+            font-weight: 600;
+            display: block;
+        }
+
+        /* 器型选择按钮组 */
+        .shape-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .shape-btn {
+            flex: 1;
+            min-width: 70px;
+            padding: 10px 5px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .shape-btn.active {
+            border-color: #8B5A2B;
+            background: #f8f0e6;
+            color: #8B5A2B;
+            font-weight: 600;
+        }
+
+        /* 温度选择按钮组 */
+        .temp-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .temp-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .temp-btn.active {
+            border-color: #E67E22;
+            background: #fff4e8;
+            color: #E67E22;
+            font-weight: 600;
+        }
+
+        /* 烧制按钮 */
+        .fire-btn {
+            width: 100%;
+            padding: 12px;
+            background: #d35400;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .fire-btn:hover {
+            background: #a04000;
+        }
+
+        .fire-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 颜色选择 */
+        .color-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.active {
+            border-color: #E67E22;
+        }
+
+        /* 纹理选择 */
+        .pattern-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .pattern-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .pattern-btn.active {
+            border-color: #E67E22;
+            background: #fff4e8;
+        }
+
+        /* 尺寸调节 */
+        .slider-control {
+            width: 100%;
+            margin: 15px 0;
+            accent-color: #8B5A2B;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* 保存按钮 */
+        .save-btn {
+            width: 100%;
+            padding: 15px;
+            background: #E67E22;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .save-btn:hover {
+            background: #d35400;
+        }
+
+        /* 拖动提示 */
+        .drag-tip {
+            position: absolute;
+            bottom: 15px;
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+            width: 100%;
+            font-weight: 500;
+        }
+
+        /* 烧制效果样式 */
+        .ceramic-firing {
+            animation: firingGlow 1.5s ease-in-out;
+        }
+
+        @keyframes firingGlow {
+            0% { filter: brightness(1); box-shadow: inset -25px -15px 0 rgba(0,0,0,0.12); }
+            50% { filter: brightness(1.5); box-shadow: inset -30px -20px 0 rgba(0,0,0,0.08); }
+            100% { filter: brightness(1); box-shadow: inset -25px -15px 0 rgba(0,0,0,0.12); }
+        }
+
+        /* 适配移动端 */
+        @media (max-width: 480px) {
+            #preview-container {
+                height: 300px;
+            }
+            
+            .ceramic-preview {
+                width: 160px;
+                height: 240px;
+            }
+            
+            .ceramic-body.bowl {
+                width: 180px;
+                height: 150px;
+            }
+            
+            .ceramic-body.plate {
+                width: 200px;
+                height: 70px;
+            }
+            
+            .ceramic-body.cup {
+                width: 140px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <h1>青花陶瓷DIY创作工坊</h1>
+    </div>
+
+    <!-- 预览区域 -->
+    <div class="preview-section">
+        <div class="preview-title">陶瓷实时预览</div>
+        <div id="preview-container">
+            <div class="ceramic-preview" id="ceramic-preview">
+                <div class="ceramic-body vase"></div>
+                <div class="ceramic-pattern"></div>
+            </div>
+            <div class="drag-tip">拖动越快/越远，陶瓷形状变化越明显（模拟捏泥力度）</div>
+        </div>
+    </div>
+
+    <!-- 控制区域 -->
+    <div class="control-section">
+        <!-- 器型选择 -->
+        <div class="control-group">
+            <span class="control-title">0. 选择陶瓷器型</span>
+            <div class="shape-options">
+                <button class="shape-btn active" data-shape="vase">青花瓷瓶</button>
+                <button class="shape-btn" data-shape="bowl">青花碗</button>
+                <button class="shape-btn" data-shape="plate">青花盘</button>
+                <button class="shape-btn" data-shape="cup">青花杯</button>
+            </div>
+        </div>
+
+        <!-- 温度选择 -->
+        <div class="control-group">
+            <span class="control-title">1. 选择烧制温度</span>
+            <div class="temp-options">
+                <button class="temp-btn active" data-temp="low">低温素烧<br/>(800℃)</button>
+                <button class="temp-btn" data-temp="mid">中温釉烧<br/>(1100℃)</button>
+                <button class="temp-btn" data-temp="high">高温瓷烧<br/>(1280℃)</button>
+            </div>
+        </div>
+
+        <!-- 烧制按钮 -->
+        <button class="fire-btn" id="fireBtn">开始烧制陶瓷</button>
+
+        <!-- 颜色选择 -->
+        <div class="control-group" style="margin-top: 25px;">
+            <span class="control-title">2. 选择釉色</span>
+            <div class="color-options">
+                <div class="color-btn active" style="background: #e8e0d0;" data-color="#e8e0d0"></div>
+                <div class="color-btn" style="background: #1A5276;" data-color="#1A5276"></div>
+                <div class="color-btn" style="background: #922B21;" data-color="#922B21"></div>
+                <div class="color-btn" style="background: #148F77;" data-color="#148F77"></div>
+                <div class="color-btn" style="background: #B7950B;" data-color="#B7950B"></div>
+                <div class="color-btn" style="background: #6C3483;" data-color="#6C3483"></div>
+            </div>
+        </div>
+
+        <!-- 纹理选择 -->
+        <div class="control-group">
+            <span class="control-title">3. 选择纹理</span>
+            <div class="pattern-options">
+                <button class="pattern-btn active" data-pattern="none">无纹理</button>
+                <button class="pattern-btn" data-pattern="url('https://picsum.photos/id/104/200/200')">花卉纹</button>
+                <button class="pattern-btn" data-pattern="url('https://picsum.photos/id/105/200/200')">龙纹</button>
+                <button class="pattern-btn" data-pattern="url('https://picsum.photos/id/106/200/200')">山水纹</button>
+            </div>
+        </div>
+
+        <!-- 尺寸调节 -->
+        <div class="control-group">
+            <span class="control-title">4. 调节尺寸</span>
+            <div>
+                <div class="slider-label">
+                    <span>高度</span>
+                    <span id="height-value">100</span>%
+                </div>
+                <input type="range" min="60" max="140" value="100" class="slider-control" id="height-slider">
+            </div>
+            <div style="margin-top: 10px;">
+                <div class="slider-label">
+                    <span>宽度</span>
+                    <span id="width-value">100</span>%
+                </div>
+                <input type="range" min="60" max="140" value="100" class="slider-control" id="width-slider">
+            </div>
+        </div>
+
+        <!-- 保存按钮 -->
+        <button class="save-btn" id="saveBtn">保存我的陶瓷创作</button>
+    </div>
+
+    <script>
+        // 全局变量
+        const ceramicPreview = document.getElementById('ceramic-preview');
+        const previewContainer = document.getElementById('preview-container');
+        const ceramicBody = document.querySelector('.ceramic-body');
+        const ceramicPattern = document.querySelector('.ceramic-pattern');
+        const fireBtn = document.getElementById('fireBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        
+        // 拖动相关变量
+        let isDragging = false;
+        let lastX = 0;
+        let lastY = 0;
+        let lastTime = 0;
+        
+        // 烧制相关变量
+        let selectedTemp = 'low'; // 默认低温素烧
+        let isFiring = false; // 防止重复烧制
+        
+        // 当前选中器型
+        let selectedShape = 'vase';
+
+        // 陶瓷形状参数（不同器型初始参数不同）
+        const shapeParams = {
+            vase: { topRadiusX: 40, topRadiusY: 20, bottomRadiusX: 60, bottomRadiusY: 80 },
+            bowl: { topRadiusX: 50, topRadiusY: 40, bottomRadiusX: 20, bottomRadiusY: 10 },
+            plate: { topRadiusX: 50, topRadiusY: 10, bottomRadiusX: 50, bottomRadiusY: 10 },
+            cup: { topRadiusX: 35, topRadiusY: 25, bottomRadiusX: 40, bottomRadiusY: 60 }
+        };
+        let currentParams = { ...shapeParams.vase };
+
+        // 页面加载初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initShapeButtons(); // 新增：初始化器型选择
+            initTempButtons();
+            initFireButton();
+            initColorButtons();
+            initPatternButtons();
+            initSliders();
+            initSaveButton();
+            initDragControl();
+        });
+
+        // 新增：初始化器型选择按钮
+        function initShapeButtons() {
+            const shapeBtns = document.querySelectorAll('.shape-btn');
+            shapeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 切换激活状态
+                    shapeBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // 更新选中器型
+                    selectedShape = btn.dataset.shape;
+                    
+                    // 重置陶瓷样式类
+                    ceramicBody.className = 'ceramic-body';
+                    ceramicBody.classList.add(selectedShape);
+                    
+                    // 重置形状参数为当前器型默认值
+                    currentParams = { ...shapeParams[selectedShape] };
+                    updateCeramicShape();
+                    
+                    // 重置尺寸滑块
+                    document.getElementById('height-slider').value = 100;
+                    document.getElementById('width-slider').value = 100;
+                    document.getElementById('height-value').textContent = 100;
+                    document.getElementById('width-value').textContent = 100;
+                    ceramicPreview.style.height = '100%';
+                    ceramicPreview.style.width = '100%';
+                });
+            });
+        }
+
+        // 初始化温度选择按钮
+        function initTempButtons() {
+            const tempBtns = document.querySelectorAll('.temp-btn');
+            tempBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tempBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedTemp = btn.dataset.temp;
+                });
+            });
+        }
+
+        // 初始化烧制按钮
+        function initFireButton() {
+            fireBtn.addEventListener('click', () => {
+                if (isFiring) return;
+                isFiring = true;
+                fireBtn.disabled = true;
+                fireBtn.textContent = '烧制中...';
+                
+                // 烧制动画效果
+                ceramicPreview.classList.add('ceramic-firing');
+                
+                // 根据温度显示不同烧制结果
+                let tempText = '';
+                let firingTime = 1500; // 烧制时长1.5秒
+                
+                switch(selectedTemp) {
+                    case 'low':
+                        tempText = '低温素烧（800℃）';
+                        break;
+                    case 'mid':
+                        tempText = '中温釉烧（1100℃）';
+                        break;
+                    case 'high':
+                        tempText = '高温瓷烧（1280℃）';
+                        break;
+                }
+                
+                // 烧制完成
+                setTimeout(() => {
+                    ceramicPreview.classList.remove('ceramic-firing');
+                    // 新增：显示对应器型的烧制提示
+                    const shapeText = {
+                        vase: '青花瓷瓶',
+                        bowl: '青花碗',
+                        plate: '青花盘',
+                        cup: '青花杯'
+                    };
+                    alert(`✅ ${shapeText[selectedShape]}烧制完成！\n烧制方式：${tempText}\n陶瓷已完成瓷化，可正常使用~`);
+                    isFiring = false;
+                    fireBtn.disabled = false;
+                    fireBtn.textContent = '开始烧制陶瓷';
+                }, firingTime);
+            });
+        }
+
+        // 初始化颜色选择按钮
+        function initColorButtons() {
+            const colorButtons = document.querySelectorAll('.color-btn');
+            colorButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    colorButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const color = btn.dataset.color;
+                    ceramicPreview.style.setProperty('--ceramic-color', color);
+                });
+            });
+        }
+
+        // 初始化纹理选择按钮
+        function initPatternButtons() {
+            const patternButtons = document.querySelectorAll('.pattern-btn');
+            patternButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    patternButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const pattern = btn.dataset.pattern;
+                    ceramicPreview.style.setProperty('--ceramic-pattern', pattern);
+                });
+            });
+        }
+
+        // 初始化尺寸滑块
+        function initSliders() {
+            const heightSlider = document.getElementById('height-slider');
+            const widthSlider = document.getElementById('width-slider');
+            const heightValue = document.getElementById('height-value');
+            const widthValue = document.getElementById('width-value');
+            
+            heightSlider.addEventListener('input', () => {
+                const value = heightSlider.value;
+                heightValue.textContent = value;
+                ceramicPreview.style.height = `${value}%`;
+            });
+            
+            widthSlider.addEventListener('input', () => {
+                const value = widthSlider.value;
+                widthValue.textContent = value;
+                ceramicPreview.style.width = `${value}%`;
+            });
+        }
+
+        // 初始化拖动控制
+        function initDragControl() {
+            previewContainer.addEventListener('mousedown', startDrag);
+            previewContainer.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startDrag(e.touches[0]);
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) requestAnimationFrame(() => drag(e));
+            });
+            document.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (isDragging) requestAnimationFrame(() => drag(e.touches[0]));
+            });
+
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+
+            function startDrag(e) {
+                isDragging = true;
+                lastX = e.clientX || e.pageX;
+                lastY = e.clientY || e.pageY;
+                lastTime = Date.now();
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+                const currentX = e.clientX || e.pageX;
+                const currentY = e.clientY || e.pageY;
+                const currentTime = Date.now();
+                
+                const deltaX = currentX - lastX;
+                const deltaY = currentY - lastY;
+                const timeDiff = Math.max(1, currentTime - lastTime);
+                const speedX = Math.abs(deltaX) / timeDiff;
+                const speedY = Math.abs(deltaY) / timeDiff;
+                
+                const powerFactorX = 0.1 + (speedX * 0.5);
+                const powerFactorY = 0.1 + (speedY * 0.5);
+                const changeX = deltaX * powerFactorX;
+                const changeY = deltaY * powerFactorY;
+                
+                // 根据当前器型限制参数范围
+                switch(selectedShape) {
+                    case 'vase':
+                        currentParams.topRadiusX = Math.max(20, Math.min(70, currentParams.topRadiusX + changeX));
+                        currentParams.bottomRadiusX = Math.max(40, Math.min(90, currentParams.bottomRadiusX + changeX * 0.8));
+                        currentParams.topRadiusY = Math.max(10, Math.min(50, currentParams.topRadiusY + changeY));
+                        currentParams.bottomRadiusY = Math.max(60, Math.min(95, currentParams.bottomRadiusY + changeY * 0.8));
+                        break;
+                    case 'bowl':
+                        currentParams.topRadiusX = Math.max(30, Math.min(70, currentParams.topRadiusX + changeX));
+                        currentParams.bottomRadiusX = Math.max(10, Math.min(40, currentParams.bottomRadiusX + changeX * 0.8));
+                        currentParams.topRadiusY = Math.max(20, Math.min(60, currentParams.topRadiusY + changeY));
+                        currentParams.bottomRadiusY = Math.max(5, Math.min(20, currentParams.bottomRadiusY + changeY * 0.8));
+                        break;
+                    case 'plate':
+                        currentParams.topRadiusX = Math.max(40, Math.min(60, currentParams.topRadiusX + changeX));
+                        currentParams.bottomRadiusX = Math.max(40, Math.min(60, currentParams.bottomRadiusX + changeX * 0.8));
+                        currentParams.topRadiusY = Math.max(5, Math.min(15, currentParams.topRadiusY + changeY));
+                        currentParams.bottomRadiusY = Math.max(5, Math.min(15, currentParams.bottomRadiusY + changeY * 0.8));
+                        break;
+                    case 'cup':
+                        currentParams.topRadiusX = Math.max(25, Math.min(50, currentParams.topRadiusX + changeX));
+                        currentParams.bottomRadiusX = Math.max(30, Math.min(50, currentParams.bottomRadiusX + changeX * 0.8));
+                        currentParams.topRadiusY = Math.max(15, Math.min(40, currentParams.topRadiusY + changeY));
+                        currentParams.bottomRadiusY = Math.max(40, Math.min(80, currentParams.bottomRadiusY + changeY * 0.8));
+                        break;
+                }
+                
+                updateCeramicShape();
+                
+                lastX = currentX;
+                lastY = currentY;
+                lastTime = currentTime;
+            }
+
+            function endDrag() {
+                isDragging = false;
+            }
+        }
+
+        // 更新陶瓷形状（原updateVaseShape改名适配所有器型）
+        function updateCeramicShape() {
+            const borderRadius = `${currentParams.topRadiusX}% ${currentParams.topRadiusX}% ${currentParams.bottomRadiusX}% ${currentParams.bottomRadiusX}% / ${currentParams.topRadiusY}% ${currentParams.topRadiusY}% ${currentParams.bottomRadiusY}% ${currentParams.bottomRadiusY}%`;
+            ceramicBody.style.borderRadius = borderRadius;
+            ceramicPattern.style.borderRadius = borderRadius;
+        }
+
+        // 初始化保存按钮
+        function initSaveButton() {
+            saveBtn.addEventListener('click', () => {
+                let tempText = '';
+                switch(selectedTemp) {
+                    case 'low': tempText = '低温素烧（800℃）'; break;
+                    case 'mid': tempText = '中温釉烧（1100℃）'; break;
+                    case 'high': tempText = '高温瓷烧（1280℃）'; break;
+                }
+                
+                // 新增：显示对应器型的保存提示
+                const shapeText = {
+                    vase: '青花瓷瓶',
+                    bowl: '青花碗',
+                    plate: '青花盘',
+                    cup: '青花杯'
+                };
+                
+                alert(`🎉 ${shapeText[selectedShape]}创作保存成功！\n烧制方式：${tempText}\n釉色：${ceramicPreview.style.getPropertyValue('--ceramic-color')}\n尺寸：高${document.getElementById('height-slider').value}% × 宽${document.getElementById('width-slider').value}%\n轮廓参数：口部(${currentParams.topRadiusX.toFixed(1)}%/${currentParams.topRadiusY.toFixed(1)}%)、底部(${currentParams.bottomRadiusX.toFixed(1)}%/${currentParams.bottomRadiusY.toFixed(1)}%)`);
+            });
+        }
+    </script>
+</body>
+</html>
+                    </form>
+                </div>
+
+                <div class="chat-section">
+                    <h3 class="control-title">在线客服咨询</h3>
+                    <div class="chat-box" id="chat-box">
+                        <div class="chat-message support-msg"></style>
+                        </head>
+                        <body>
+                        <div class="chat-box">
+                          <div class="chat-header">线上客服聊天</div>
+                          <div class="chat-content" id="chatContent"></div>
+                          <div class="chat-input">
+                            <input type="text" id="msgInput" placeholder="请输入消息...">
+                            <button onclick="sendMsg()">发送</button>
+                          </div>
+                        </div>
+                        
+                        <script>
+                        function addMsg(text, isCustomer) {
+                          const chat = document.getElementById('chatContent');
+                          const div = document.createElement('div');
+                          div.className = isCustomer ? 'msg msg-customer' : 'msg msg-service';
+                          div.innerHTML = `<div class="text">${text}</div>`;
+                          chat.appendChild(div);
+                          chat.scrollTop = chat.scrollHeight;
+                        }
+                        
+                        function sendMsg() {
+                          const input = document.getElementById('msgInput');
+                          const text = input.value.trim();
+                          if (!text) return;
+                          addMsg(text, true);
+                          input.value = '';
+                        
+                          // 客服自动回复
+                          setTimeout(() => {
+                            addMsg("您好，已收到您的消息，我们会尽快回复您~", false);
+                          }, 800);
+                        }
+                        
+                        // 回车发送
+                        document.getElementById('msgInput').addEventListener('keydown', function(e) {
+                          if (e.key === 'Enter') sendMsg();
+                        });
+                        
+                        // 初始欢迎语
+                        addMsg("您好，很高兴为您服务！", false);
+                        </script>
+                        </body>
+                        </html>
+                         </style>
+
+
+<script>
+function addMsg(text, isCustomer) {
+  const chat = document.getElementById('chatContent');
+  const div = document.createElement('div');
+  div.className = isCustomer ? 'msg msg-customer' : 'msg msg-service';
+  div.innerHTML = `<div class="text">${text}</div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function sendMsg() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg(text, true);
+  input.value = '';
+
+  // 客服自动回复
+  setTimeout(() => {
+    addMsg("您好，已收到您的消息，我们会尽快回复您~", false);
+  }, 800);
+}
+
+// 回车发送
+document.getElementById('msgInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') sendMsg();
+});
+
+// 初始欢迎语
+addMsg("您好，很高兴为您服务！", false);
+</script>
+</body>
+</html>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-container">
+                <div class="footer-col">
+                    <h4 class="footer-title">关于我们</h4>
+                    <ul class="footer-links">
+                        <li class="footer-link">平台介绍</li>
+                        <li class="footer-link">团队成员</li>
+                        <li class="footer-link">发展历程</li>
+                        <li class="footer-link">联系方式</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">资源中心</h4>
+                    <ul class="footer-links">
+                        <li class="footer-link">陶瓷知识库</li>
+                        <li class="footer-link">3D模型下载</li>
+                        <li class="footer-link">创作教程</li>
+                        <li class="footer-link">设计素材</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">服务支持</h4>
+                    <ul class="footer-links">
+                        <li class="footer-link">常见问题</li>
+                        <li class="footer-link">定制流程</li>
+                        <li class="footer-link">支付方式</li>
+                        <li class="footer-link">售后服务</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">关注我们</h4>
+                    <ul class="footer-links">
+                        <li class="footer-link"><i class="fa fa-weixin"></i> 微信公众号</li>
+                        <li class="footer-link"><i class="fa fa-weibo"></i> 新浪微博</li>
+                        <li class="footer-link"><i class="fa fa-youtube-play"></i> 视频号</li>
+                        <li class="footer-link"><i class="fa fa-instagram"></i> Instagram</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                © 2025 瓷语·境 - 陶瓷艺术体验平台 版权所有 | 京ICP备12345678号
+            </div>
+        </div>
+    </footer>
+
+    <!-- 3D模型查看弹窗 -->
+    <div class="model-modal" id="model-modal">
+        <div class="modal-content">
+            <div class="loader" id="model-loader"></div>
+            <button class="close-modal" onclick="closeModelViewer()">×</button>
+            <div id="model-viewer"></div>
+        </div>
+    </div>
+
+    <!-- 订单确认弹窗 -->
+    <div class="order-modal" id="order-modal">
+        <div class="order-modal-content">
+            <h3 class="modal-title">订单提交成功！</h3>
+            <p class="modal-desc">您的定制陶瓷订单已提交，订单编号：CYJ20250311001<br><br>我们的客服将在1个工作日内与您联系，确认制作细节和支付方式。<br><br>预计制作周期：15-20个工作日，完成后将第一时间为您发货。</p>
+            <button class="modal-btn" onclick="closeOrderModal()">确认</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let creatorScene, creatorCamera, creatorRenderer, creatorControls;
+        let currentPottery = null;
+        let modelViewerScene, modelViewerCamera, modelViewerRenderer, modelViewerControls;
+        let isCreatorInited = false;
+
+       
+        
+
+        
+
+            // 根据形状创建不同模型
+            switch(shape) {
+                case 'vase':
+                    // 瓶身
+                    const body = new THREE.Mesh(
+                        new THREE.CylinderGeometry(width, width * 1.2, height * 1.2, 64, 1, false),
+                        material
+                    );
+                    body.position.y = 0;
+                    group.add(body);
+                    
+                    // 瓶颈
+                    const neck = new THREE.Mesh(
+                        new THREE.CylinderGeometry(width * neckRatio, width, height * 0.5, 64, 1, false),
+                        material
+                    );
+                    neck.position.y = height * 0.85;
+                    group.add(neck);
+                    
+                    // 瓶底
+                    const base = new THREE.Mesh(
+                        new THREE.CylinderGeometry(width * 1.3, width * 1.2, height * 0.2, 64, 1, false),
+                        material
+                    );
+                    base.position.y = -height * 0.7;
+                    group.add(base);
+                    break;
+                    
+                case 'bowl':
+                    const bowl = new THREE.Mesh(
+                        new THREE.ConeGeometry(width * 2, height, 64, 64, true),
+                        material
+                    );
+                    bowl.rotation.x = Math.PI;
+                    bowl.position.y = -height * 0.3;
+                    group.add(bowl);
+                    break;
+                    
+                case 'plate':
+                    const plate = new THREE.Mesh(
+                        new THREE.CylinderGeometry(width * 2, width * 2, height * 0.2, 128, 1, false),
+                        material
+                    );
+                    plate.position.y = 0;
+                    group.add(plate);
+                    
+                    const plateEdge = new THREE.Mesh(
+                        new THREE.CylinderGeometry(width * 2.1, width * 2.1, height * 0.1, 128, 1, false),
+                        material
+                    );
+                    plateEdge.position.y = height * 0.15;
+                    group.add(plateEdge);
+                    break;
+                    
+                case 'cup':
+                    const cupBody = new THREE.Mesh(
+                        new THREE.CylinderGeometry(width, width, height * 1.5, 64, 1, false),
+                        material
+                    );
+                    cupBody.position.y = 0;
+                    group.add(cupBody);
+                    
+                    const cupHandle = new THREE.Mesh(
+                        new THREE.TorusGeometry(width * 0.3, width * 0.1, 16, 64, Math.PI),
+                        material
+                    );
+                    cupHandle.position.set(width * 0.8, 0, 0);
+                    group.add(cupHandle);
+                    break;
+            }
+            
+            currentPottery = group;
+            creatorScene.add(group);
+        }
+
+        // 更新陶瓷模型参数
+        function updatePottery() {
+            if (!isCreatorInited) return;
+            
+            const activeShape = document.querySelector('.control-btn.active[data-shape]').dataset.shape;
+            const activeColor = document.querySelector('.color-btn.active').dataset.color;
+            const activePattern = document.querySelector('.control-btn.active[data-pattern]').dataset.pattern;
+            
+            createPottery(activeShape, activeColor, activePattern);
+        }
+
+        // 初始化控制按钮
+        function initControlButtons() {
+            // 形状选择按钮
+            document.querySelectorAll('.control-btn[data-shape]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.control-btn[data-shape]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updatePottery();
+                    
+                    // 更新订单摘要
+                    const shapeNames = {
+                        'vase': '青花瓷瓶',
+                        'bowl': '青花碗',
+                        'plate': '青花盘',
+                        'cup': '青花杯'
+                    };
+                    document.getElementById('summary-shape').textContent = shapeNames[btn.dataset.shape];
+                });
+            });
+            
+            // 图案选择按钮
+            document.querySelectorAll('.control-btn[data-pattern]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.control-btn[data-pattern]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updatePottery();
+                    
+                    // 更新订单摘要
+                    const patternNames = {
+                        'plain': '纯色',
+                        'flower': '花卉纹',
+                        'dragon': '龙纹',
+                        'landscape': '山水纹'
+                    };
+                    document.getElementById('summary-pattern').textContent = patternNames[btn.dataset.pattern];
+                });
+            });
+            
+            // 颜色选择按钮
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updatePottery();
+                    
+                    // 更新订单摘要
+                    const colorNames = {
+                        '#1A5276': '青蓝色',
+                        '#922B21': '枣红色',
+                        '#148F77': '青绿色',
+                        '#B7950B': '金黄色',
+                        '#6C3483': '紫蓝色'
+                    };
+                    document.getElementById('summary-color').textContent = colorNames[btn.dataset.color] || '自定义色';
+                });
+            });
+            
+            // 烧制工艺选择按钮
+            document.querySelectorAll('.control-btn[data-fire]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.control-btn[data-fire]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // 更新订单摘要
+                    const fireNames = {
+                        'low': '低温 (1000℃)',
+                        'medium': '中温 (1200℃)',
+                        'high': '高温 (1350℃)'
+                    };
+                    document.getElementById('summary-fire').textContent = fireNames[btn.dataset.fire];
+                });
+            });
+        }
+
+        // 打开3D模型查看器
+        function openModelViewer(period) {
+            const modal = document.getElementById('model-modal');
+            const loader = document.getElementById('model-loader');
+            modal.style.display = 'flex';
+            loader.style.display = 'block';
+            
+            const container = document.getElementById('model-viewer');
+            
+            // 初始化模型查看器
+            if (!modelViewerScene) {
+                modelViewerScene = new THREE.Scene();
+                modelViewerScene.background = new THREE.Color(0x000000);
+                
+                // 添加环境光
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                modelViewerScene.add(ambientLight);
+                
+                const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+                dirLight1.position.set(5, 5, 5);
+                modelViewerScene.add(dirLight1);
+                
+                const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+                dirLight2.position.set(-5, -5, 5);
+                modelViewerScene.add(dirLight2);
+                
+                const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+                hemisphereLight.position.set(0, 20, 0);
+                modelViewerScene.add(hemisphereLight);
+                
+                modelViewerCamera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                modelViewerCamera.position.z = 8;
+                
+                modelViewerRenderer = new THREE.WebGLRenderer({ antialias: true });
+                modelViewerRenderer.setSize(container.clientWidth, container.clientHeight);
+                modelViewerRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+                modelViewerRenderer.toneMappingExposure = 1.0;
+                container.appendChild(modelViewerRenderer.domElement);
+                
+                modelViewerControls = new THREE.OrbitControls(modelViewerCamera, modelViewerRenderer.domElement);
+                modelViewerControls.enableDamping = true;
+                modelViewerControls.dampingFactor = 0.05;
+                modelViewerControls.enablePan = true;
+                modelViewerControls.enableZoom = true;
+                
+                // 窗口大小适配
+                window.addEventListener('resize', () => {
+                    modelViewerCamera.aspect = container.clientWidth / container.clientHeight;
+                    modelViewerCamera.updateProjectionMatrix();
+                    modelViewerRenderer.setSize(container.clientWidth, container.clientHeight);
+                });
+                
+                // 动画循环
+                function animate() {
+                    requestAnimationFrame(animate);
+                    modelViewerControls.update();
+                    modelViewerRenderer.render(modelViewerScene, modelViewerCamera);
+                }
+                animate();
+            }
+            
+            // 根据朝代加载不同模型
+            loadPeriodModel(period);
+        }
+
+        // 加载对应朝代的高精度模型
+        function loadPeriodModel(period) {
+            const loader = document.getElementById('model-loader');
+            
+            // 移除现有模型
+            modelViewerScene.children.forEach(child => {
+                if (child.type === 'Group') {
+                    modelViewerScene.remove(child);
+                }
+            });
+            
+            // 纹理配置（PBR材质）
+            const textureConfigs = {
+                tang: {
+                    color: 0xe6e2d3,
+                    map: 'https://picsum.photos/id/101/1024/1024',
+                    roughness: 'https://picsum.photos/id/111/1024/1024',
+                    normal: 'https://picsum.photos/id/121/1024/1024'
+                },
+                song: {
+                    color: 0xd9c9b4,
+                    map: 'https://picsum.photos/id/102/1024/1024',
+                    roughness: 'https://picsum.photos/id/112/1024/1024',
+                    normal: 'https://picsum.photos/id/122/1024/1024'
+                },
+                yuan: {
+                    color: 0xb8c4d2,
+                    map: 'https://pics
